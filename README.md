@@ -7,7 +7,7 @@ Hws for Udacity CS344 - Intro to Parallel Programming
 - Run the corresponding hw to get the .exe and then use terminal to run it with parameters.
 
 ## TODO
-- [ ] Hw1
+- [x] Hw1
 - [ ] Hw2
 - [ ] Hw3
 - [ ] Hw4
