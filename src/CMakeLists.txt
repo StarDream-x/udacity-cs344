@@ -8,8 +8,10 @@
 cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 project(cs344)
 
+#error fix
+set(CMAKE_CXX_FLAGS_DEBUG "/MDd")
+
 set(OpenCV_DIR D:/iniBuild/opencv/bd/opencv/build)
-cmake_policy(SET CMP0054 NEW)
 find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
 
@@ -22,12 +24,10 @@ if(CUDA_FOUND)
   # whether to build x64.  We tell it to support most devices, though, 
   # to make sure more people can easily run class code without knowing 
   # about this compiler argument
-#  set(CUDA_NVCC_FLAGS "
-#  -gencode;arch=compute_30,code=sm_30;
-#  -gencode;arch=compute_35,code=sm_35;
-#  -gencode;arch=compute_35,code=compute_35;")
+#  set(CUDA_NVCC_FLAGS "-gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_75,code=compute_75;")
+  set(CUDA_GEN_CODE "-gencode=arch=compute_86,code=sm_86")    # 根据自己的显卡设置compute_**，例如3060为compute_86
 
-  set(CMAKE_CUDA_STANDARD 17)
+  #  set(CMAKE_CUDA_STANDARD 17)
 
   # add -Wextra compiler flag for gcc compilations
   if (UNIX)

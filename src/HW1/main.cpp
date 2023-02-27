@@ -26,6 +26,12 @@ int main(int argc, char **argv) {
   double perPixelError = 0.0;
   double globalError   = 0.0;
   bool useEpsCheck = false;
+
+  //test
+//    input_file = "cinque_terre_small.jpg";
+//    output_file = "HW1_output.png";
+//    reference_file = "HW1_reference.png";
+
   switch (argc)
   {
 	case 2:

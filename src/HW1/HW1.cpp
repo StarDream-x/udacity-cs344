@@ -7,6 +7,7 @@
 #include <string>
 #include <opencv2\imgproc\types_c.h>
 #include "opencv2/imgcodecs/legacy/constants_c.h"
+#include <direct.h>
 
 cv::Mat imageRGBA;
 cv::Mat imageGrey;
@@ -29,6 +30,12 @@ void preProcess(uchar4 **inputImage, unsigned char **greyImage,
   checkCudaErrors(cudaFree(0));
 
   cv::Mat image;
+
+  //get current path
+//  char cwd[256];
+//  _getcwd(cwd, 256);
+//  std::cout << "path = " << cwd << std::endl;
+
   image = cv::imread(filename.c_str(), CV_LOAD_IMAGE_COLOR);
   if (image.empty()) {
     std::cerr << "Couldn't open file: " << filename << std::endl;

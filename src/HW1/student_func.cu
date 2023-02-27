@@ -60,7 +60,7 @@ void rgba_to_greyscale(const uchar4* const rgbaImage,
   size_t idxvec = idx_x * numCols + idx_y;
   uchar4 rgbValue = rgbaImage[idxvec];
   greyImage[idxvec] = (unsigned char)(.299f * rgbValue.x + .587f * rgbValue.y + .114f * rgbValue.z);
-  
+//    greyImage[idxvec] = (unsigned char)(.99f * rgbValue.x + .01f * rgbValue.y + .0f * rgbValue.z);
 }
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
