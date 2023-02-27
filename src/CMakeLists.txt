@@ -5,9 +5,11 @@
 # <email>   quantm@unist.ac.kr  kast.jo@googlemail.com msarahan@gmail.com</email>
 ############################################################################
 
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 project(cs344)
 
+set(OpenCV_DIR D:/iniBuild/opencv/bd/opencv/build)
+cmake_policy(SET CMP0054 NEW)
 find_package(OpenCV REQUIRED)
 find_package(CUDA REQUIRED)
 
@@ -20,10 +22,12 @@ if(CUDA_FOUND)
   # whether to build x64.  We tell it to support most devices, though, 
   # to make sure more people can easily run class code without knowing 
   # about this compiler argument
-  set(CUDA_NVCC_FLAGS "
-  -gencode;arch=compute_30,code=sm_30;  
-  -gencode;arch=compute_35,code=sm_35;
-  -gencode;arch=compute_35,code=compute_35;")
+#  set(CUDA_NVCC_FLAGS "
+#  -gencode;arch=compute_30,code=sm_30;
+#  -gencode;arch=compute_35,code=sm_35;
+#  -gencode;arch=compute_35,code=compute_35;")
+
+  set(CMAKE_CUDA_STANDARD 17)
 
   # add -Wextra compiler flag for gcc compilations
   if (UNIX)
@@ -34,11 +38,11 @@ if(CUDA_FOUND)
   set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} "-G")
 
   add_subdirectory (HW1)
-  add_subdirectory (HW2)
-  add_subdirectory (HW3)
-  add_subdirectory (HW4)
-  add_subdirectory (HW5)
-  add_subdirectory (HW6)
+#  add_subdirectory (HW2)
+#  add_subdirectory (HW3)
+#  add_subdirectory (HW4)
+#  add_subdirectory (HW5)
+#  add_subdirectory (HW6)
 else(CUDA_FOUND)
   message("CUDA is not installed on this system.")
 endif()
