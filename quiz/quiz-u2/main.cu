@@ -63,4 +63,3 @@ int main() {
  * 1e6         100         Atomic     ok       0.095232
  * 1e7         100         Atomic     ok       0.908288
 */
-//Here is a test for username
