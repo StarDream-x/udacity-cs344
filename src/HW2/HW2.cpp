@@ -5,6 +5,9 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <string>
+#include <opencv2\imgproc\types_c.h>
+#include "opencv2/imgcodecs/legacy/constants_c.h"
+#include <direct.h>
 
 cv::Mat imageInputRGBA;
 cv::Mat imageOutputRGBA;
@@ -87,7 +90,6 @@ void preProcess(uchar4 **h_inputImageRGBA, uchar4 **h_outputImageRGBA,
   }
 
   float normalizationFactor = 1.f / filterSum;
-
   for (int r = -blurKernelWidth/2; r <= blurKernelWidth/2; ++r) {
     for (int c = -blurKernelWidth/2; c <= blurKernelWidth/2; ++c) {
       (*h_filter)[(r + blurKernelWidth/2) * blurKernelWidth + c + blurKernelWidth/2] *= normalizationFactor;
