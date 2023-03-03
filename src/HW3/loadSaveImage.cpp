@@ -4,6 +4,9 @@
 #include <vector>
 #include <stdio.h>
 #include "cuda_runtime.h"
+#include <opencv2\imgproc\types_c.h>
+#include "opencv2/imgcodecs/legacy/constants_c.h"
+#include <direct.h>
 
 //The caller becomes responsible for the returned pointer. This
 //is done in the interest of keeping this code as simple as possible.

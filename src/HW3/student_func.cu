@@ -81,6 +81,54 @@
 
 #include "utils.h"
 
+__global__ void getMaxOrMin(const float * d_in, float * d_out, bool opMax, const size_t tot){
+    extern __shared__ float sh_mem[];
+    size_t idx = threadIdx.x + blockDim.x * blockIdx.x;
+    size_t tid = threadIdx.x;
+    if(idx >= tot) sh_mem[tid] = d_in[0];
+    else sh_mem[tid] = d_in[idx];
+    __syncthreads();
+    for(int s = blockDim.x/2;s>0;s>>=1){
+        if(tid < s){
+            if(opMax) sh_mem[tid] = max(sh_mem[tid],sh_mem[tid+s]);
+            else sh_mem[tid] = min(sh_mem[tid],sh_mem[tid+s]);
+        }
+        __syncthreads();
+    }
+    if(!tid) d_out[blockIdx.x] = sh_mem[0];
+}
+
+__global__ void makeHistogram(const float * d_in, unsigned unsigned int * d_out, float lumMin, float lumRange, const size_t numBins,const size_t tot){
+    size_t idx = threadIdx.x + blockIdx.x * blockDim.x;
+    if(idx >= tot) return;
+    int bel = (d_in[idx] - lumMin) / lumRange * numBins;
+    if(bel == numBins) --bel;
+    atomicAdd(&d_out[bel],1);
+}
+
+__global__ void blellochScan(unsigned int * d_in, const size_t length){
+    extern __shared__ unsigned unsigned int sh_res[];
+    size_t idx = threadIdx.x;
+    sh_res[idx] = d_in[idx];
+    __syncthreads();
+    for(int s = 1;s<length;s<<=1){
+        if(!((idx+1)%(s<<1))){
+            sh_res[idx] += sh_res[idx - s];
+        }
+        __syncthreads();
+    }
+    if(idx == length - 1) sh_res[idx] = 0;
+    __syncthreads();
+    for(int s = (length>>1);s > 0;s>>=1){
+        if(idx&&!((idx+1)%(s<<1))){
+            sh_res[idx] += sh_res[idx - s];
+            sh_res[idx - s] = sh_res[idx] - sh_res [idx - s];
+        }
+        __syncthreads();
+    }
+    d_in[idx] = sh_res[idx];
+}
+
 void your_histogram_and_prefixsum(const float* const d_logLuminance,
                                   unsigned int* const d_cdf,
                                   float &min_logLum,
@@ -100,5 +148,46 @@ void your_histogram_and_prefixsum(const float* const d_logLuminance,
        the cumulative distribution of luminance values (this should go in the
        incoming d_cdf pointer which already has been allocated for you)       */
 
+    //Step 1: get Max&Min
+    size_t blockSize = 1024;
+    size_t gridSize = exp2(ceil(log2(numRows * numCols / blockSize)));
+    size_t tot = numRows * numCols;
 
+    //get max
+    float * d_im;
+    checkCudaErrors(cudaMalloc(&d_im,sizeof(float) * gridSize));
+    getMaxOrMin<<<gridSize,blockSize,sizeof(float) * blockSize>>>(d_logLuminance,d_im, true,tot);
+    cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+    float * d_max;
+    checkCudaErrors(cudaMalloc(&d_max,sizeof(float)));
+    getMaxOrMin<<<1,gridSize, sizeof(float) * gridSize>>>(d_im,d_max, true,tot);
+    cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+
+    //get min
+    getMaxOrMin<<<gridSize,blockSize,sizeof(float) * blockSize>>>(d_logLuminance,d_im, false,tot);
+    cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+    float * d_min;
+    checkCudaErrors(cudaMalloc(&d_min,sizeof(float)));
+    getMaxOrMin<<<1,gridSize, sizeof(float) * gridSize>>>(d_im,d_min, false,tot);
+    cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+
+    //memcpy
+    checkCudaErrors(cudaMemcpy(&min_logLum,d_min,sizeof(float),cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(&max_logLum,d_max,sizeof(float),cudaMemcpyDeviceToHost));
+
+    printf("max=%.2f  min=%.2f\n",max_logLum,min_logLum);
+    //Step 2: getRange
+    float lumRange = max_logLum - min_logLum;
+
+    //Step 3: getHistogram
+    makeHistogram<<<gridSize,blockSize>>>(d_logLuminance,d_cdf,min_logLum,lumRange,numBins,tot);
+    cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+
+    //Step 4: Scan
+    blellochScan<<<1,numBins, sizeof(unsigned int) * numBins>>>(d_cdf,numBins);
+    cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+
+    checkCudaErrors(cudaFree(d_max));
+    checkCudaErrors(cudaFree(d_min));
+    checkCudaErrors(cudaFree(d_im));
 }

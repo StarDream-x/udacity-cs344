@@ -9,7 +9,7 @@ Hws for Udacity CS344 - Intro to Parallel Programming
 ## TODO
 - [x] Hw1
 - [x] Hw2
-- [ ] Hw3
+- [x] Hw3
 - [ ] Hw4
 - [ ] Hw5
 - [ ] Hw6
